@@ -6,7 +6,8 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-COPY scripts/mcp_conversation_server.py .
+COPY render_conversation.py .
+COPY pyproject.toml .
 
 RUN uv pip install --system mcp
 
@@ -15,7 +16,7 @@ RUN uv pip install --system mcp
 #   INPUT_COLUMN: Column name for user input (default: "input")
 #   RESPONSE_COLUMN: Column name for assistant response (default: "response")
 
-CMD ["python", "mcp_conversation_server.py"]
+CMD ["python", "render_conversation.py"]
 
 # Claude Code MCP config (~/.claude.json):
 #
