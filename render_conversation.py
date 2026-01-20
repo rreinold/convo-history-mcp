@@ -14,6 +14,9 @@ import subprocess
 import sys
 import textwrap
 
+USER_INPUT_KEY = "user_input"
+ASSISTANT_RESPONSE_KEY = "assistant_response"
+
 
 def wrap_text(text: str, width: int) -> list[str]:
     """Wrap text to specified width, preserving newlines."""
@@ -51,13 +54,13 @@ def render_right(text: str, width: int, total_width: int) -> None:
     print()
 
 
-def extract_user_message(mia_input: dict) -> str | None:
+def extract_user_message(user_input: dict) -> str | None:
     """Extract readable message from user input."""
-    if not mia_input:
+    if not user_input:
         return None
 
-    method = mia_input.get("method", "")
-    message = mia_input.get("message", "")
+    method = user_input.get("method", "")
+    message = user_input.get("message", "")
 
     if method == "chat":
         return message
@@ -67,25 +70,25 @@ def extract_user_message(mia_input: dict) -> str | None:
         return message if message else None
 
 
-def extract_assistant_message(mia_response: dict) -> str | None:
+def extract_assistant_message(assistant_response: dict) -> str | None:
     """Extract readable message from assistant response."""
-    if not mia_response:
+    if not assistant_response:
         return None
 
     parts = []
 
-    answer = mia_response.get("answer")
+    answer = assistant_response.get("answer")
     if answer:
         parts.append(answer.strip())
 
-    output_list = mia_response.get("output_list")
+    output_list = assistant_response.get("output_list")
     if output_list:
         options = []
         for item in output_list:
             label = item.get("label", "")
             emoji = item.get("emoji", "")
             desc = item.get("description", "")
-            if emoji and emoji != "mia":
+            if emoji:
                 option = f"  {emoji} {label}"
             else:
                 option = f"  - {label}"
@@ -95,7 +98,7 @@ def extract_assistant_message(mia_response: dict) -> str | None:
         if options:
             parts.append("Options:\n" + "\n".join(options))
 
-    recommendation = mia_response.get("recommendation")
+    recommendation = assistant_response.get("recommendation")
     if recommendation:
         summary = recommendation.get("summary", "")
         cost = recommendation.get("total_estimated_cost", "")
@@ -118,7 +121,7 @@ def fetch_from_database(chat_session_id: str) -> list[str]:
         sys.exit(1)
 
     query = f"""
-        SELECT json_build_object('mia_input', mia_input, 'mia_response', mia_response)
+        SELECT json_build_object('{USER_INPUT_KEY}', {USER_INPUT_KEY}, '{ASSISTANT_RESPONSE_KEY}', {ASSISTANT_RESPONSE_KEY})
         FROM conversation_messages
         WHERE conversation_id = (
             SELECT id FROM conversations
@@ -158,14 +161,14 @@ def render_conversation(lines: list[str], title: str) -> None:
         except json.JSONDecodeError:
             continue
 
-        mia_input = entry.get("mia_input")
-        mia_response = entry.get("mia_response")
+        user_input = entry.get(USER_INPUT_KEY)
+        assistant_response = entry.get(ASSISTANT_RESPONSE_KEY)
 
-        user_msg = extract_user_message(mia_input)
+        user_msg = extract_user_message(user_input)
         if user_msg:
             render_right(user_msg, column_width, total_width)
 
-        assistant_msg = extract_assistant_message(mia_response)
+        assistant_msg = extract_assistant_message(assistant_response)
         if assistant_msg:
             render_left(assistant_msg, column_width, total_width)
 

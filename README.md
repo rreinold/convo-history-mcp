@@ -38,7 +38,13 @@ for a walk along the Embarcadero!
 
 ## Quick Start
 
-Add to your `~/.claude.json`:
+```bash
+claude mcp add --transport stdio convo-history --scope local \
+  -e 'DATABASE_URL=${DATABASE_URL}' \
+  -- docker run -i --rm -e DATABASE_URL ghcr.io/rreinold/convo-history-mcp:latest
+```
+
+Or add to your `~/.claude.json`:
 
 ```json
 {
@@ -80,8 +86,8 @@ CREATE TABLE conversations (
 CREATE TABLE conversation_messages (
     id UUID PRIMARY KEY,
     conversation_id UUID REFERENCES conversations(id),
-    mia_input JSONB,
-    mia_response JSONB
+    user_input JSONB,
+    assistant_response JSONB
 );
 ```
 
@@ -89,8 +95,8 @@ CREATE TABLE conversation_messages (
 
 ```json
 {
-  "mia_input": {"method": "chat", "message": "Hello!"},
-  "mia_response": {"answer": "Hi there! How can I help?"}
+  "user_input": {"method": "chat", "message": "Hello!"},
+  "assistant_response": {"answer": "Hi there! How can I help?"}
 }
 ```
 
